@@ -25,7 +25,7 @@ loop(Name, Log, Peers, Time, Sleep, Jitter) ->
     Wait = random:uniform(Sleep),
     receive
         {msg, SentTime, Msg} ->
-            NewTime = time:merge(Time, SentTime),
+            NewTime = time:inc(time:merge(Time, SentTime)),
             Log ! {log, Name, NewTime, {received, Msg}},
             loop(Name, Log, Peers, NewTime, Sleep, Jitter);
         stop ->
@@ -34,7 +34,7 @@ loop(Name, Log, Peers, Time, Sleep, Jitter) ->
             Log ! {log, Name, time, {error, Error}}
         after Wait ->
             Selected = select(Peers),
-            NewTime = time:inc(t, Time),
+            NewTime = time:inc(Time),
             Message = {hello, random:uniform(100)},
             Selected ! {msg, NewTime, Message},
             jitter(Jitter),

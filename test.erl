@@ -13,7 +13,7 @@ run(Sleep, Jitter) ->
     worker:peers(C, [B, A, D]),
     worker:peers(D, [B, A, C]),
     timer:sleep(5000),
-    logger:stop(Log),
+    loggy:stop(Log),
     worker:stop(A),
     worker:stop(B),
     worker:stop(C),

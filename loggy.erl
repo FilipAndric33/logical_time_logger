@@ -7,17 +7,29 @@ start(Nodes) ->
 stop(Logger) -> 
     Logger ! stop.
 
-init(_) -> 
-    loop().
+init(Nodes) -> 
+    loop(time:clock(Nodes), []).
 
-loop() ->
+loop(Clock, Queue) ->
     receive 
-        {log, From, Time, Msg} -> 
-            log(From, Time, Msg),
-            loop();
+        {log, From, Time, Msg} ->
+            NewC = time:update(From, Time, Clock),
+            NewQ = case time:safe(Time, NewC) of
+                true ->
+                    {Safe, Rest} = lists:partition(fun({_, B, _}) ->
+                            B =< Time
+                        end, Queue ++ [{From, Time, Msg}]),
+                    lists:foreach(fun({A, B, C}) -> 
+                        log(A, B, C)
+                    end, Safe),
+                    Rest;
+                false ->
+                    Queue ++ [{From, Time, Msg}]
+            end,
+            loop(NewC, NewQ);
         stop ->
             ok
     end.
 
 log(From, Time, Msg) ->
-    io:format("log: ~w ~w ~p ~n", [Time, Msg, From]).
+    io:format("log: ~w ~w ~p ~n", [From, Time, Msg]).
